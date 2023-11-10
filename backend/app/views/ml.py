@@ -11,7 +11,7 @@ import zipfile
 import csv
 from PIL import Image
 
-from app.models.ml_model import generate_submission_folder, model
+from app.models.ml_model import get_predicts
 from app.utils.storage import MyStorage
 
 
@@ -62,33 +62,13 @@ class MlView(View):
                                  "r") as zip:
                 zip.extractall(settings.MEDIA_ROOT)
 
-            directory = os.fsencode(settings.MEDIA_ROOT)
+            directory = os.fsencode(settings.MEDIA_ROOT) # возможно пригодиться в будущем
 
-            generate_submission_folder([model],
-                                       settings.MEDIA_ROOT)  # вот эта строчка пример юзания
-            for file in os.listdir(directory):
-                filename = os.fsdecode(file)
-                if filename.lower().endswith(
-                        ".png") or filename.lower().endswith(
-                    ".jpg") or filename.lower().endswith(".jpeg"):
-                    try:
-                        img = Image.open(storage.path(filename))
-                        x, y = img.size
-                        if x > 600 and y > 800:
-                            x = x // 2
-                            y = y // 2
-                            img = img.resize((x, y), Image.ANTIALIAS)
-                        img.save(storage.path(filename), quality=90)
-                    except:
-                        pass
+            get_predicts(os.listdir(directory), True) ##  СПИСОК
             empty_list = []
             good_list = []
-            bad_list = []
+            bad_list = [] ### вместо списков ебануть словарь куда добавлять пути
 
-            paths = ["a/", "b/", "e/", "ab/", "ae/", "be/", "abe/"]
-
-            for path in paths:
-                (settings.MEDIA_ROOT / path).mkdir(parents=True, exist_ok=True)
             with open(storage.path('submission.csv'), 'r') as f:
                 reader = csv.reader(f, delimiter=",")
                 for row in reader:

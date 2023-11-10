@@ -1,158 +1,95 @@
-import pandas as pd
-import numpy as np
-
-from djangoProject import settings
-from ..utils.storage import MyStorage
-from tqdm import tqdm
-from django.contrib.staticfiles import finders
-
 import os
 
-from PIL import Image
-
-import torch
-import torch.nn as nn
-
-from torch.utils.data import Dataset, DataLoader
-from torchvision import datasets, models, transforms
-from typing import Callable, Dict, Mapping, Tuple, Optional, Union
-
-DEVICE = 'cpu'
-FOLDER_PATH = ''
-st = MyStorage()
-IMG_SIZE = (256, 256)
-SEED = 42
-torch.seed = SEED
-torch.random.seed = SEED
+from tqdm import tqdm
+from glob import glob
+import pandas as pd
+import numpy as np
+import cv2
+from mmaction.datasets.transforms.processing import Resize, CenterCrop
+from mmaction.datasets.transforms.formatting import FormatShape, \
+    PackActionInputs
+from mmaction.datasets.transforms.wrappers import PytorchVideoWrapper
+from mmaction.apis import inference_recognizer, init_recognizer
+from mmengine.dataset import Compose
+from mmcv.transforms import BaseTransform
+from mmaction.datasets.transforms.loading import DecordInit, SampleFrames, \
+    DecordDecode
 
 
-def generate_submit(
-        models: list,
-        test_loader: DataLoader,
-        name: str,
-        device: str = DEVICE,
-        visual: bool = False) -> np.ndarray:
-    """Returns labels predicted by multiple models"""
-    for i in range(len(models)):
-        models[i].eval()
+class SquarePadding(BaseTransform):
 
-    y_pred = np.array([])
-    with torch.no_grad():
-        for i, (filename, img) in tqdm(enumerate(test_loader),
-                                       total=len(test_loader)):
-            img = img.to(device)
-            pred_all = models[0](img)
-            for model in models[1:]:
-                pred_all += model(img)
-            arg_pred = pred_all.argmax(1).cpu().numpy()
-            y_pred = np.concatenate([y_pred, arg_pred], axis=0)
+    def __init__(self, out_shape):
+        self.out_shape = out_shape
 
-    return y_pred
+    def transform(self, results):
+        imgs = results['imgs']
+        in_shape = results['img_shape']
+        out_shape = self.out_shape
+        padding = (int((out_shape[1] - in_shape[1]) / 2),
+                   int((out_shape[0] - in_shape[0]) / 2))
+        pad_func = lambda x: cv2.copyMakeBorder(x, padding[1], padding[1],
+                                                padding[0], padding[0],
+                                                cv2.BORDER_CONSTANT, value=114)
+
+        padded_images = [pad_func(img) for img in imgs]
+        results['imgs'] = padded_images
+        results['img_shape'] = out_shape
+        return results
 
 
-def generate_submission_folder(models: list, link_to_folder: str) -> list:
-    paths = []
-    label = []
+def get_predicts(videos: list, word_label: bool = False):
+    CONFIG = "mVitConfig.py"
+    CHECKPOINT = "checkpoint.pth"
+    DEVICE = "cuda:0"
+    CLASSES = "classes.csv"
+    OUTPUT_FILE = "result.csv"
 
-    broken_imges = []
-    for i in os.listdir(link_to_folder):
-        ext = os.path.splitext(i)[1].lower()
-        if ext == '.png' or ext == '.jpg' or ext == '.jpeg' or ext == ".gif":
-            try:
-                a = Image.open(os.path.join(link_to_folder, i)).load()
-                paths.append(i)
-                label.append(0)
-            except:
-                broken_imges.append(i)
-    test_df = pd.DataFrame({"filename": paths, "label": label})
-    test_dataset = TestDataset(test_df, link_to_folder, val_transform)
-    test_loader = get_test_loader(test_dataset)
-    pred = generate_submit(models, test_loader, 'third', visual=True)
+    test_pipeline = Compose([
+        DecordInit(io_backend='disk'),
+        SampleFrames(
+            clip_len=32,
+            frame_interval=3,
+            num_clips=1,
+            test_mode=True,
+            out_of_bound_opt='repeat_last'
+        ),
+        DecordDecode(),
+        Resize(scale=(224, 224)),
+        # SquarePadding(out_shape=shape),
+        # CenterCrop(crop_size=224),
+        FormatShape(input_format='NCTHW'),
+        PackActionInputs(),
+    ])
 
-    brkn_df = pd.DataFrame({"filename": broken_imges, "broken": [1 for i in range(len(broken_imges))],
-                            "empty": [0 for i in range(len(broken_imges))],
-                            "animal": [0 for i in range(len(broken_imges))]})
-    test_df["label"] = pred.astype(int)
-    test_df["broken"] = (pred == 0).astype(int)
-    test_df["empty"] = (pred == 1).astype(int)
-    test_df["animal"] = (pred == 2).astype(int)
-    brkn_df["broken"] = brkn_df["broken"].astype(int)
-    brkn_df["empty"] = brkn_df["empty"].astype(int)
-    brkn_df["animal"] = brkn_df["animal"].astype(int)
+    classes = pd.read_csv(CLASSES)
+    idx2label = {i[0]: i[1] for i in classes.values[:, :2]}
+    label2idx = {i[1]: i[0] for i in classes.values[:, :2]}
 
-    test_df = test_df[["filename", "broken", "empty", "animal"]]
-    test_df = pd.concat([test_df, brkn_df])
-    test_df.to_csv(
-        st.path("submission.csv"), index=False)
+    model = init_recognizer(CONFIG, CHECKPOINT, device=DEVICE)
+    model.eval()
 
-    return [list(test_df.iloc[i].values) for i in range(len(test_df))]
+    import time
 
+    names = []
+    predicts = []
+    hyper_start = time.time()
+    for video in tqdm(videos):
+        name = os.path.basename(video).replace(".mp4", "")
+        names.append(name)
+        start = time.time()
+        predicted = inference_recognizer(model, video, test_pipeline)
+        end = time.time()
+        # print(end-start, "seconds")
+        predicted_class = int(predicted.pred_labels.item)
+        predicts.append(predicted_class)
 
-def get_resnet_152(device: str = DEVICE,
-                   ckpt_path: Optional[str] = None
-                   ) -> nn.Module:
-    model = models.resnet152(True)
-    model.fc = nn.Sequential(nn.Linear(2048, 3))
-    model = model.to(device)
-    if ckpt_path:
-        try:
-            checkpoint = torch.load(ckpt_path, map_location=device)
-            model.load_state_dict(checkpoint)
-        except Exception as e:
-            print(e)
-            print("Wrong checkpoint")
-    return model
+    if word_label:
+        predicts = [idx2label[i] for i in predicts]
+    # print("All videos handled", time.time()-hyper_start, "seconds")
 
+    result_df = pd.DataFrame.from_dict(
+        {"attachment_id": names, "class_indx": predicts})
 
-def get_test_transform() -> Callable:
-    tran = [
-        transforms.Resize(IMG_SIZE),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225]),
-    ]
-    return transforms.Compose(tran)
+    result_df.to_csv(OUTPUT_FILE, sep=",", index=False)
 
-
-class TestDataset(Dataset):
-    def __init__(self,
-                 data_df: pd.DataFrame,
-                 path: str,
-                 transform: Optional[Callable] = None):
-        self.data_df = data_df
-        self.path = path
-        self.transform = transform
-
-    def __getitem__(self, idx: int):
-        image_name = self.data_df.iloc[idx].filename
-
-        # читаем картинку
-        image = self.load_sample(image_name)
-
-        # преобразуем, если нужно
-        if self.transform:
-            image = self.transform(image)
-
-        return image_name, image
-
-    def load_sample(self, name: str) -> Image:
-        name = Image.open(os.path.join(self.path, name))
-        name.load()
-        return name
-
-    def __len__(self):
-        return len(self.data_df)
-
-
-def get_test_loader(test_dataset: Dataset) -> DataLoader:
-    return DataLoader(dataset=test_dataset,
-                      batch_size=16,
-                      shuffle=False,
-                      pin_memory=True,
-                      num_workers=2)
-
-
-device = torch.device(DEVICE)
-
-val_transform = get_test_transform()
-model = get_resnet_152(device, settings.STATIC_ROOT / "resnet(256,256).ckpt")
+    return predicts
