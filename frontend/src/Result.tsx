@@ -8,8 +8,8 @@ import clsx from "clsx";
 
 const xuy = ["cartwheel", "catch", "clap", "climb", "dive", "draw_sword", "dribble", "fencing", "flic_flac", "golf",
     "handstand", "hit", "jump", "pick", "pour", "pullup", "push", "pushup", "shoot_ball", "sit", "situp", "swing_baseball", "sword_exercise", "throw"]
-const pizda = ["Колесо", "Поимка", "Хлопок", "Вскарабкивание", "Нырок", "Обнаживание меча", "Дриблинг", "Фехтование", "Рандат", "Гольф",
-    "Стояние на руках", "Удар", "Прыжок", "Подбирание", "Наливание", "Подтягивание", "Толкание", "Отжимание", "Бросок мяча", "Присаживание", "Качание пресса", "Взмах битой", "Упражнение с мечом", "Бросок"]
+const pizda = ["Колесо", "Поймать", "Хлопать", "Карабкаться", "Нырок", "Обнажить меч", "Ведение мяча", "Фехтование", "Рондад", "Гольф",
+    "Стойка на руках", "Удар", "Прыжок", "Взять", "Налить", "Подтягивание", "Толкать", "Отжимание", "Бросок мяча", "Сесть", "Пресс", "Взмах битой", "Упражнение с мечом", "Бросок"]
 
 const l10n = Object.fromEntries(xuy.map((v, i) => [v, pizda[i]]))
 
@@ -217,7 +217,7 @@ export function Result() {
                             <label htmlFor={`cb-all`}> Все</label>
                         </div>
 
-                        {xuy.filter(value => value in loadedData).map((value, index) => (
+                        {xuy.sort((a, b) => l10n[a].localeCompare(l10n[b])).filter(value => value in loadedData).map((value, index) => (
                             <div className="ml-4 text-2xl" key={value}>
                                 <input type="checkbox" id={`cb-${index}`} checked={filter[value]} onChange={(e) => {
                                     setFilter(prevState => ({

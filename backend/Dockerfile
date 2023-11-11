@@ -4,6 +4,7 @@ WORKDIR /app
 COPY requirements.txt ./
 COPY start.sh ./
 COPY . ./src
+COPY manage.py ./
 RUN pip install -r requirements.txt
 RUN pip install -U openmim
 RUN mim install mmengine
