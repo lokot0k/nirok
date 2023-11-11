@@ -29,6 +29,7 @@ ALLOWED_HOSTS = ["0.0.0.0", "backend", "localhost", "127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = [
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,9 +40,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
@@ -116,3 +117,4 @@ MEDIA_ROOT = (BASE_DIR / "media/")
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024 * 70 * 6
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CORS_ORIGIN_ALLOW_ALL = True

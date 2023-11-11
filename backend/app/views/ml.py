@@ -76,14 +76,14 @@ class MlView(View):
             # конвертить avi в mp4
             for video in os.listdir(directory):
                 video_name = video.decode('utf-8')
-                if video_name.endswith("avi"):
+                if video_name.lower().endswith(".avi"):
                     convert_avi_to_mp4(settings.MEDIA_ROOT / video_name,
                                        settings.MEDIA_ROOT / video_name.replace('.avi', '.mp4'))
                     # os.remove(settings.MEDIA_ROOT / video_name)
 
             for video in os.listdir(directory):
                 video_name = video.decode('utf-8')
-                if video_name.endswith("mp4"):
+                if video_name.lower().endswith(".mp4"):
                     extract_first_frame(settings.MEDIA_ROOT / video_name,
                                         settings.MEDIA_ROOT / video_name.replace('.mp4', '.jpg'))
 
