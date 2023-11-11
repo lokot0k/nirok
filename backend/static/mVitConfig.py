@@ -3,10 +3,10 @@ ann_file_train = 'ann/train.txt'
 ann_file_val = 'ann/val.txt'
 auto_scale_lr = dict(base_batch_size=4, enable=True)
 base_lr = 0.0016
-custom_imports = dict(
-    allow_failed_imports=False, imports=[
-        'my_module',
-    ])
+# custom_imports = dict(
+#     allow_failed_imports=False, imports=[
+#         'my_module',
+#     ])
 data_root = ''
 data_root_val = ''
 dataset_type = 'VideoDataset'

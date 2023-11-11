@@ -1,9 +1,13 @@
 import {LoaderFunctionArgs, Navigate, useLoaderData, useNavigate} from "react-router-dom";
 import ImageGallery, {ReactImageGalleryItem} from "react-image-gallery";
-import {ChangeEventHandler, useEffect, useState} from "react";
-import {Button, Form} from "react-bootstrap";
+import {ChangeEventHandler, useEffect, useRef, useState} from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {solid} from "@fortawesome/fontawesome-svg-core/import.macro";
+import {ChupChupChup} from "./assets/ChupChupChup";
+import {BurgZurgGurg} from "./assets/BurgZurgGurg";
+import clsx from "clsx";
+
+const xuy = ["cartwheel", "catch", "clap", "climb", "dive", "draw_sword", "dribble", "fencing", "flic_flac", "golf", "handstand", "hit", "jump", "pick", "pour", "pullup", "push", "pushup", "shoot_ball", "sit", "situp", "swing_baseball", "sword_exercise", "throw"]
 
 
 enum QualityTag {
@@ -21,6 +25,12 @@ type Data = {
 
 export const loader = async (): Promise<Data | null> => {
     // ====== api request ========
+
+    return {
+        [QualityTag.ANIMAL]: [],
+        [QualityTag.BROKEN]: [],
+        [QualityTag.EMPTY]: [],
+    };
 
     const response = await fetch("/api/do_good/", {
         method: "GET",
@@ -82,21 +92,66 @@ function downloadFile(url: string, filename: string) {
     document.body.removeChild(link);
 }
 
+type ViewMode = "ChupChupChup" | "BurgZurgGurg"
+
+type GalleryProps = {
+    close: () => void;
+    data: ExtendedReactImageGalleryItem[];
+    chosenImage: number;
+}
+
+const Gallery = ({close, data, chosenImage}: GalleryProps) =>
+    <div className="image-gallery-container">
+        <button className="close-btn" onClick={close}><FontAwesomeIcon
+            icon={solid("close")}/></button>
+        <ImageGallery items={data} lazyLoad thumbnailPosition="left"
+                      startIndex={chosenImage}/>
+    </div>;
+
+type ImageGridProps = {
+    images: ExtendedReactImageGalleryItem[]
+    chooseImage: (index: number) => void;
+}
+
+const ImageGrid = ({images, chooseImage}: ImageGridProps) => <div className="image-grid col-span-5">
+    {images.map((item, index) => <div key={index} className="image-grid-item">
+            <img src={item.thumbnail} alt={item.description} className={`thumbnail-${item.originalTag}`}
+                 onClick={event => chooseImage(index)}/>
+        </div>
+    )}
+</div>
+
+
 export function Result() {
     const nav = useNavigate();
     const [chosenImage, setChosenImage] = useState(null as null | number);
-    const [showGallery, setShowGallery] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>("ChupChupChup")
     const [filterFunc, setFilterFunc] = useState(() => (_: ExtendedReactImageGalleryItem) => true)
-    const [filter, setFilter] = useState({
-        [QualityTag.ANIMAL]: true,
-        [QualityTag.EMPTY]: true,
-        [QualityTag.BROKEN]: true,
-    })
+    const [filter, setFilter] = useState(Object.fromEntries(xuy.map(value => [value, false])))
+    const allCbRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        return () => {
+            if (!allCbRef.current) return
+            const x = Object.values(filter);
+            console.log(x)
+            if (x.every(v => v)) {
+                allCbRef.current.checked = true
+                allCbRef.current.indeterminate = false
+            } else if (x.every(v => !v)) {
+                allCbRef.current.checked = false
+                allCbRef.current.indeterminate = false
+            } else {
+                allCbRef.current.checked = false
+                allCbRef.current.indeterminate = true
+            }
+        };
+    }, [filter]);
+
 
     const loadedData = useLoaderData() as Data | null
 
     if (!loadedData) return <Navigate to="/" replace/>
-
 
     const changeFilterCheckbox: ChangeEventHandler<HTMLInputElement> = (e) => {
         const value = e.target.id.slice(3) as QualityTag;
@@ -127,38 +182,49 @@ export function Result() {
 
 
     return <div className="App">
-        <header className="App-header">
-            <span className="leave-btn"  onClick={() => nav("/")}><FontAwesomeIcon className="leave-icon" icon={solid("arrow-right-from-bracket")}/> Выход</span>
-            {/**/}
-            <p>Тигирекский заповедник</p>
-        </header>
         <div className="Result">
             <div className="result-header">
-                <div className="filter-container">
-                    <p>Фильтры</p>
-                    <MyInput filter={QualityTag.ANIMAL} filterState={filter} onChangeFunc={changeFilterCheckbox}/>
-                    <MyInput filter={QualityTag.EMPTY} filterState={filter} onChangeFunc={changeFilterCheckbox}/>
-                    <MyInput filter={QualityTag.BROKEN} filterState={filter} onChangeFunc={changeFilterCheckbox}/>
-                </div>
+                <span className="leave-btn" onClick={() => nav("/")}><FontAwesomeIcon className="leave-icon"
+                                                                                      icon={solid("arrow-right-from-bracket")}/> Выход</span>
+                {/*<p>Нырок</p>*/}
                 <div className="buttons-container">
+                    <div className="logo-container">
+                        <div className={clsx("logo my-shadow", viewMode === "ChupChupChup" ? "logo-active" : "")}
+                             onClick={() => setViewMode("ChupChupChup")}>
+                            <ChupChupChup/>
+                        </div>
+                        <div className={clsx("logo my-shadow", viewMode === "BurgZurgGurg" ? "logo-active" : "")}
+                             onClick={() => setViewMode("BurgZurgGurg")}>
+                            <BurgZurgGurg/>
+                        </div>
+                    </div>
                     <a href="#" onClick={() => downloadFile("/media/submission.csv", "submission.csv")}><FontAwesomeIcon
-                        icon={solid("download")}/>Скачать CSV</a>
-                    <a href="#" onClick={() => downloadFile(getUrl(filter), "Today.zip")}><FontAwesomeIcon
-                        icon={solid("download")}/>Скачать архив</a>
+                        icon={solid("download")}/>Скачать отчёт</a>
                 </div>
             </div>
-            {chosenImage !== null ? <div className="image-gallery-container">
-                    <button className="close-btn" onClick={_ => setChosenImage(null)}><FontAwesomeIcon
-                        icon={solid("close")}/></button>
-                    <ImageGallery items={result.filter(filterFunc)} lazyLoad thumbnailPosition="left"
-                                  startIndex={chosenImage} />
-                </div> :
-                <div className="image-grid">
-                    {images.filter(filterFunc).map((item, index) => <div key={index} className="image-grid-item">
-                            <img src={item.thumbnail} alt={item.description} className={`thumbnail-${item.originalTag}`}
-                                 onClick={event => setChosenImage(index)}/>
+            {chosenImage !== null ? <Gallery chosenImage={chosenImage} close={() => setChosenImage(null)}
+                                             data={result.filter(filterFunc)}/> :
+                <div className="grid grid-rows-6">
+                    <div className="col-span-1 bg-white rounded m-4 my-shadow p-4">
+                        <h1 className="text-xl font-bold">Действия</h1>
+                        <div className="inline-block relative">
+                            <input type="checkbox" id={`cb-all`} ref={allCbRef}/>
+                            <label htmlFor={`cb-all`}> Все</label>
                         </div>
-                    )}
+
+                        {xuy.map((value, index) => (
+                            <div className="ml-4" key={value}>
+                                <input type="checkbox" id={`cb-${index}`} checked={filter[value]} onChange={(e) => {
+                                    setFilter(prevState => ({
+                                        ...prevState,
+                                        [value]: e.target.checked,
+                                    }))
+                                }}/>
+                                <label htmlFor={`cb-${index}`}> {value}</label>
+                            </div>
+                        ))}
+                    </div>
+                    <ImageGrid images={images.filter(filterFunc)} chooseImage={setChosenImage}/>
                 </div>
             }
         </div>

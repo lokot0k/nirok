@@ -41,10 +41,10 @@ class SquarePadding(BaseTransform):
 
 
 def get_predicts(videos: list, word_label: bool = False):
-    CONFIG = settings.STATIC_ROOT / "mVitConfig.py"
-    CHECKPOINT = settings.STATIC_ROOT/"checkpoint.pth"
+    CONFIG = str(settings.STATIC_ROOT / "mVitConfig.py")
+    CHECKPOINT = str(settings.STATIC_ROOT/"checkpoint.pth")
     DEVICE = "cpu" # cuda:0
-    CLASSES = settings.STATIC_ROOT / "classes.csv"
+    CLASSES = str(settings.STATIC_ROOT / "classes.csv")
     st = MyStorage()
     test_pipeline = Compose([
         DecordInit(io_backend='disk'),
@@ -76,7 +76,8 @@ def get_predicts(videos: list, word_label: bool = False):
     predicts = []
     hyper_start = time.time()
     for video in tqdm(videos):
-        name = os.path.basename(video).replace(".mp4", "")
+        print(video)
+        name = os.path.basename(video)
         names.append(name)
         start = time.time()
         predicted = inference_recognizer(model, video, test_pipeline)

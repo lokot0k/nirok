@@ -152,20 +152,44 @@ html {
     padding: 15px;
     background-color: #E8EBF366;
     justify-content: space-between;
+    align-items: center;
 }
 
-.filter-container label {
-    margin-left: 5px;
-    margin-right: 10px;
-}
-
-.filter-container p {
+.result-header > p {
+    font-size: 2rem;
     font-weight: bold;
-    font-size: 1rem;
-    float: left;
-    margin-left: 15px;
-    margin-right: 20px;
-    margin-bottom: 0;
+}
+
+.logo-container {
+    margin-right: 8px;
+}
+
+.my-shadow {
+    box-shadow: 0 0 4px 0 rgba(64, 78, 124, 0.25);
+}
+
+.logo {
+    cursor: pointer;
+    margin: 0 4px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 8px;
+}
+
+.logo-active {
+    border-color: #404E7C;
+}
+
+.logo:hover {
+    background-color: #FAFAFA;
+}
+
+
+.buttons-container, .buttons-container > div {
+    display: flex;
+    justify-items: center;
+    align-items: center;
 }
 
 .buttons-container a {
@@ -188,7 +212,7 @@ html {
     background: #404E7C;
 }
 
-.buttons-container svg {
+.buttons-container > a > svg {
     margin-right: 5px;
 }
 
@@ -219,16 +243,13 @@ html {
 .App-header {
     text-align: center;
     min-height: 5vh;
-    font-size: 2rem;
-    font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .leave-btn {
-    position: absolute;
-    left: 20px;
+    margin-left: 20px;
     cursor: pointer;
     font-size: 16px;
     font-weight: normal;
@@ -294,7 +315,6 @@ html {
 }
 
 
-
 .image-grid-item {
     padding: 15px;
     transition: all 0.2s ease-in-out;
@@ -331,4 +351,18 @@ html {
 .image-gallery-icon {
     color: #404E7C !important;
     filter: none !important;
+}
+
+.filter-container label {
+    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.filter-container p {
+    font-weight: bold;
+    font-size: 1rem;
+    float: left;
+    margin-left: 15px;
+    margin-right: 20px;
+    margin-bottom: 0;
 }
