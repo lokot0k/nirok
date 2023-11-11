@@ -5,6 +5,7 @@ from glob import glob
 import pandas as pd
 import numpy as np
 import cv2
+from djangoProject import settings
 from mmaction.datasets.transforms.processing import Resize, CenterCrop
 from mmaction.datasets.transforms.formatting import FormatShape, \
     PackActionInputs
@@ -40,10 +41,10 @@ class SquarePadding(BaseTransform):
 
 
 def get_predicts(videos: list, word_label: bool = False):
-    CONFIG = "mVitConfig.py"
-    CHECKPOINT = "checkpoint.pth"
+    CONFIG = settings.STATIC_ROOT / "mVitConfig.py"
+    CHECKPOINT = settings.STATIC_ROOT/"checkpoint.pth"
     DEVICE = "cpu" # cuda:0
-    CLASSES = "classes.csv"
+    CLASSES = settings.STATIC_ROOT / "classes.csv"
     st = MyStorage()
     test_pipeline = Compose([
         DecordInit(io_backend='disk'),
