@@ -62,9 +62,9 @@ def get_predicts(videos: list, word_label: bool = False):
             out_of_bound_opt='repeat_last'
         ),
         DecordDecode(),
-        Resize(scale=(224, 224)),
-        # SquarePadding(out_shape=shape),
-        # CenterCrop(crop_size=224),
+        Resize(scale=(300, 300)),
+        SquarePadding(out_shape=(300, 300)),
+        CenterCrop(crop_size=224),
         FormatShape(input_format='NCTHW'),
         PackActionInputs(),
     ])
