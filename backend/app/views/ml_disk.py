@@ -95,6 +95,9 @@ class MlDiskView(View):
 
         get_predicts(os.listdir(directory), True)  ##  СПИСОК
         d = defaultdict(list)
+        f = open(st.path('pgb.json'), 'w')
+        json.dump({"i": 0, "l": 10, "s": "Расфасовываем файлы..."}, f)
+        f.close()
         with open(storage.path('submission.csv'), 'r') as f:
             reader = csv.reader(f, delimiter=",")
             next(reader)  # пропускаем хедер
@@ -105,6 +108,9 @@ class MlDiskView(View):
                 d[class_ind].append(at_id)
         d = dict(d)
         d.update({'success': 200})
+        f = open(st.path('pgb.json'), 'w')
+        json.dump({"i": 0, "l": 10, "s": "Скачиваем файлы..."}, f)
+        f.close()
         return JsonResponse(d)
 
 

@@ -98,7 +98,7 @@ def get_predicts(videos: list, word_label: bool = False):
         predicts.append(predicted_class)
     f = open(st.path('pgb.json'), 'w')
     l = len(videos)
-    json.dump({"i": 0, "l": l, "s": "Сортируем файлы..."}, f)
+    json.dump({"i": 0, "l": l, "s": ""}, f)
     f.close()
     if word_label:
         predicts = [idx2label[i] for i in predicts]
