@@ -98,7 +98,7 @@ class MlDiskView(View):
             for row in reader:
                 at_id = row[0]
                 class_ind = row[1]
-                moveFile(service, down[at_id], folders[class_ind])
+                moveFile(service, down[at_id.replace('.mp4','.avi')], folders[class_ind])
                 d[class_ind].append(at_id)
         d = dict(d)
         d.update({'success': 200})
