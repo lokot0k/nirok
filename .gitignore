@@ -2,4 +2,5 @@
 /backend/static/token.json
 __pycache__
 /backend/static/checkpoint.pth
+pgb.json
 .idea

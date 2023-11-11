@@ -60,6 +60,9 @@ const Player = ({close, data, chosenImage, prev, next}: PlayerProps) => {
     chosenImage = (chosenImage + data.length) % data.length
 
     return <div className="relative p-4 flex justify-center items-center">
+        <div className="absolute -top-14 text-4xl text-main font-bold">
+            {data[chosenImage].description}
+        </div>
         <button className="absolute top-4 right-4 z-4 text-4xl text-main" onClick={close}><FontAwesomeIcon
             icon={solid("close")}/></button>
         <span className="mr-4 cursor-pointer text-4xl text-main" onClick={prev}>
@@ -109,9 +112,9 @@ const ImageTable = ({images, chooseImage}: ImagesViewProps) => <div className="g
         <>
             <div className="col-span-1 flex justify-end items-center text-2xl">{index + 1}</div>
             <div className="col-span-13 flex items-center">
-                <img src={value.thumbnailSrc} alt={value.name} className="w-56 rounded cursor-pointer"
+                <img src={value.thumbnailSrc} alt={value.name} className="w-48 rounded cursor-pointer"
                      onClick={() => chooseImage(index)}/>
-                <p className="ml-4 text break-all text-2xl">{value.name}</p>
+                <p className="ml-4 mr-32 text break-all text-2xl">{value.name}</p>
             </div>
             <div className="col-span-6 flex items-center text-2xl">{value.description}</div>
         </>
@@ -121,7 +124,7 @@ const ImageTable = ({images, chooseImage}: ImagesViewProps) => <div className="g
 export function Result() {
     const nav = useNavigate();
     const [chosenImage, setChosenImage] = useState<number | null>(null);
-    const [viewMode, setViewMode] = useState<ViewMode>("BurgZurgGurg")
+    const [viewMode, setViewMode] = useState<ViewMode>("ChupChupChup")
     const [filter, _setFilter] = useState(Object.fromEntries(xuy.map(value => [value, false])))
     const allCbRef = useRef<HTMLInputElement>(null)
     const loadedData = useLoaderData() as Data | null
@@ -197,7 +200,7 @@ export function Result() {
                         </div>
                     </div>
                     <a href="#" onClick={() => downloadFile("/media/submission.csv", "submission.csv")}><FontAwesomeIcon
-                        icon={solid("download")}/>Скачать отчёт</a>
+                        icon={solid("download")}/>Скачать CSV</a>
                 </div>
             </div>
             {chosenImage !== null ? <Player chosenImage={chosenImage} close={() => setChosenImage(null)}
@@ -206,8 +209,8 @@ export function Result() {
                                             data={result}/> :
                 <div className="grid grid-cols-6">
                     <div className="col-span-1 bg-white rounded m-4 my-shadow p-4">
-                        <h1 className="text-xl font-bold">Действия</h1>
-                        <div className="inline-block relative">
+                        <h1 className="text-4xl font-bold">Действия</h1>
+                        <div className="inline-block text-2xl relative">
                             <input type="checkbox" id={`cb-all`} ref={allCbRef} checked={allCbState.checked} onChange={event => {
                                 setFilter(() => Object.fromEntries(xuy.map(value => [value, event.target.checked])))
                             }}/>
@@ -215,14 +218,14 @@ export function Result() {
                         </div>
 
                         {xuy.filter(value => value in loadedData).map((value, index) => (
-                            <div className="ml-4" key={value}>
+                            <div className="ml-4 text-2xl" key={value}>
                                 <input type="checkbox" id={`cb-${index}`} checked={filter[value]} onChange={(e) => {
                                     setFilter(prevState => ({
                                         ...prevState,
                                         [value]: e.target.checked,
                                     }))
                                 }}/>
-                                <label htmlFor={`cb-${index}`}> {value}</label>
+                                <label htmlFor={`cb-${index}`}> {l10n[value]}</label>
                             </div>
                         ))}
                     </div>

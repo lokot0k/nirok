@@ -1,4 +1,4 @@
-import React, {DragEventHandler, useRef, useState} from 'react';
+import React, {DragEventHandler, useEffect, useRef, useState} from 'react';
 import './App.css';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {solid} from "@fortawesome/fontawesome-svg-core/import.macro";
@@ -16,8 +16,30 @@ function Welcome() {
     const [url, setUrl] = useState("");
     const [isLoading, setLoading] = useState(false)
     const [dragActive, setDragActive] = useState(false)
+    const [pgb, setPgb] = useState({
+        i: 0,
+        l: 1
+    });
     const inputRef: React.MutableRefObject<null | HTMLInputElement> = useRef(null);
     const nav = useNavigate();
+
+
+    useEffect(() => {
+        if (!isLoading) return () => {};
+        function getPgb() {
+            fetch('http://localhost:8000/media/pgb.json')
+                .then(result => result.json())
+                .then(result => {
+                    setPgb(result);
+                })
+                .catch(reason => {});
+        }
+        getPgb()
+        const interval = setInterval(() => getPgb(), 350)
+        return () => {
+            clearInterval(interval);
+        }
+    }, [isLoading])
 
     const handleDrag: DragEventHandler = (e) => {
         e.preventDefault()
@@ -140,6 +162,7 @@ function Welcome() {
         {isLoading ? (<div className="progress-bar-container">
             <div className="progress-bar">
                 <div className="circle circle-border"/>
+                <div className="absolute left-0 top-0 h-full w-full flex justify-center items-center text-2xl text-main">{pgb.i === 0 ? "Загрузка..." : `${pgb.i} / ${pgb.l}`}</div>
             </div>
         </div>) : <></>}
     </div>
