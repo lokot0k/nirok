@@ -18,7 +18,8 @@ function Welcome() {
     const [dragActive, setDragActive] = useState(false)
     const [pgb, setPgb] = useState({
         i: 0,
-        l: 1
+        l: 1,
+        s: "...",
     });
     const inputRef: React.MutableRefObject<null | HTMLInputElement> = useRef(null);
     const nav = useNavigate();
@@ -162,7 +163,10 @@ function Welcome() {
         {isLoading ? (<div className="progress-bar-container">
             <div className="progress-bar">
                 <div className="circle circle-border"/>
-                <div className="absolute left-0 top-0 h-full w-full flex justify-center items-center text-2xl text-main">{pgb.i === 0 ? "Загрузка..." : `${pgb.i} / ${pgb.l}`}</div>
+                <div className="absolute -top-36 text-2xl font-extrabold text-main flex justify-center">{pgb.s}</div>
+                <div className="absolute left-0 top-0 h-full w-full flex justify-center items-center text-2xl text-main">
+                    {pgb.i === 0 ? "Загрузка..." : `${pgb.i} / ${pgb.l}`}
+                </div>
             </div>
         </div>) : <></>}
     </div>
