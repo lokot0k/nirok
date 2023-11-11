@@ -127,13 +127,14 @@ export function Result() {
     const [chosenImage, setChosenImage] = useState(null as null | number);
     const [viewMode, setViewMode] = useState<ViewMode>("ChupChupChup")
     const [filterFunc, setFilterFunc] = useState(() => (_: ExtendedReactImageGalleryItem) => true)
-    const [filter, setFilter] = useState(Object.fromEntries(xuy.map(value => [value, false])))
+    const [filter, _setFilter] = useState(Object.fromEntries(xuy.map(value => [value, false])))
     const allCbRef = useRef<HTMLInputElement>(null)
 
-    useEffect(() => {
-        return () => {
-            if (!allCbRef.current) return
-            const x = Object.values(filter);
+    const setFilter = (upd: (prevState: { [p: string]: boolean }) => { [p: string]: boolean }) => {
+        setFilter(prevState => {
+            const newFilter = upd(prevState);
+            if (!allCbRef.current) return newFilter
+            const x = Object.values(newFilter);
             console.log(x)
             if (x.every(v => v)) {
                 allCbRef.current.checked = true
@@ -145,26 +146,27 @@ export function Result() {
                 allCbRef.current.checked = false
                 allCbRef.current.indeterminate = true
             }
-        };
-    }, [filter]);
+            return newFilter
+        })
+    }
 
 
     const loadedData = useLoaderData() as Data | null
 
     if (!loadedData) return <Navigate to="/" replace/>
 
-    const changeFilterCheckbox: ChangeEventHandler<HTMLInputElement> = (e) => {
-        const value = e.target.id.slice(3) as QualityTag;
-        const newFilter = {
-            ...filter,
-            [value]: e.target.checked,
-        };
-        setFilterFunc(() => (item: ExtendedReactImageGalleryItem) => {
-            return newFilter[item.originalTag as QualityTag]
-        })
-        setFilter(newFilter)
-        setChosenImage(null)
-    }
+    // const changeFilterCheckbox: ChangeEventHandler<HTMLInputElement> = (e) => {
+    //     const value = e.target.id.slice(3) as QualityTag;
+    //     const newFilter = {
+    //         ...filter,
+    //         [value]: e.target.checked,
+    //     };
+    //     setFilterFunc(() => (item: ExtendedReactImageGalleryItem) => {
+    //         return newFilter[item.originalTag as QualityTag]
+    //     })
+    //     setFilter(newFilter)
+    //     setChosenImage(null)
+    // }
 
     const result = [] as ExtendedReactImageGalleryItem[]
     for (const key in loadedData) {

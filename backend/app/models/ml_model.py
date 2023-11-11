@@ -41,11 +41,15 @@ class SquarePadding(BaseTransform):
 
 
 def get_predicts(videos: list, word_label: bool = False):
+    st = MyStorage()
+
+    videos = [x.decode("utf-8") for x in videos if x.endswith(b'.avi') or x.endswith(b'.mp4')]
+    videos = [st.path(i) for i in videos]
+
     CONFIG = str(settings.STATIC_ROOT / "mVitConfig.py")
     CHECKPOINT = str(settings.STATIC_ROOT/"checkpoint.pth")
     DEVICE = "cpu" # cuda:0
     CLASSES = str(settings.STATIC_ROOT / "classes.csv")
-    st = MyStorage()
     test_pipeline = Compose([
         DecordInit(io_backend='disk'),
         SampleFrames(
