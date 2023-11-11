@@ -19,6 +19,7 @@ from mmaction.datasets.transforms.loading import DecordInit, SampleFrames, \
 from app.utils.storage import MyStorage
 import json
 
+
 class SquarePadding(BaseTransform):
 
     def __init__(self, out_shape):
@@ -43,12 +44,13 @@ class SquarePadding(BaseTransform):
 def get_predicts(videos: list, word_label: bool = False):
     st = MyStorage()
 
-    videos = [x.decode("utf-8") for x in videos if x.endswith(b'.mp4')] # x.endswith(b'.avi') or
+    videos = [x.decode("utf-8") for x in videos if
+              x.endswith(b'.mp4')]  # x.endswith(b'.avi') or
     videos = [st.path(i) for i in videos]
 
     CONFIG = str(settings.STATIC_ROOT / "mVitConfig.py")
-    CHECKPOINT = str(settings.STATIC_ROOT/"checkpoint.pth")
-    DEVICE = "cpu:0" # cuda:0
+    CHECKPOINT = str(settings.STATIC_ROOT / "checkpoint.pth")
+    DEVICE = "cpu:0"  # cuda:0
     CLASSES = str(settings.STATIC_ROOT / "classes.csv")
     test_pipeline = Compose([
         DecordInit(io_backend='disk'),
@@ -80,13 +82,14 @@ def get_predicts(videos: list, word_label: bool = False):
     predicts = []
     f = open(st.path('pgb.json'))
     l = len(videos)
+    json.dump({"i": 0, "l": l}, f)
     i = 0
     for video in tqdm(videos):
         name = os.path.basename(video)
         names.append(name)
         predicted = inference_recognizer(model, video, test_pipeline)
-        i+=1
-        json.dump({"zxc":i / l*100}, f)
+        i += 1
+        json.dump({"i": i, "l": l}, f)
         # print(end-start, "seconds")
         predicted_class = int(predicted.pred_labels.item)
         predicts.append(predicted_class)
