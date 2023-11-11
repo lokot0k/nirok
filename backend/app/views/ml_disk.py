@@ -3,6 +3,7 @@ import io
 import json
 import os
 import shutil
+from collections import defaultdict
 
 from PIL import Image
 from django.http import HttpRequest, JsonResponse, HttpResponse
@@ -24,6 +25,7 @@ from app.models.ml_model import get_predicts
 from app.utils.drive_downloader import download_files, createRemoteFolder, \
     moveFile
 from app.utils.storage import MyStorage
+from app.views.ml import convert_avi_to_mp4, extract_first_frame
 from djangoProject import settings
 
 
@@ -59,66 +61,49 @@ class MlDiskView(View):
         folder_id = json.loads(request.body)['folder']  # request.body.folder
         shutil.rmtree(settings.MEDIA_ROOT)
         settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
-        d = download_files(service, folder_id, st.path(""))
-        directory = os.fsencode(settings.MEDIA_ROOT)
+        names = ["cartwheel", "catch", "clap", "climb", "dive", "draw_sword",
+               "dribble", "fencing", "flic_flac", "golf",
+               "handstand", "hit", "jump", "pick", "pour", "pullup", "push",
+               "pushup", "shoot_ball", "sit", "situp", "swing_baseball",
+               "sword_exercise", "throw"]
+        folders = dict()
+        for i in names:
+            folders.update({i: createRemoteFolder(service, i, folder_id)})
+        down = download_files(service, folder_id, st.path(""))
         storage = MyStorage()
-        get_predicts(os.listdir(directory), True)
+        directory = os.fsencode(
+            settings.MEDIA_ROOT)  # возможно пригодиться в будущем
 
-        for file in os.listdir(directory):
-            filename = os.fsdecode(file)
-            if filename.lower().endswith(".png") or filename.lower().endswith(
-                    ".jpg") or filename.lower().endswith(".jpeg"):
-                try:
-                    img = Image.open(storage.path(filename))
-                    x, y = img.size
-                    if x > 600 and y > 800:
-                        x = x // 2
-                        y = y // 2
-                        img = img.resize((x, y), Image.ANTIALIAS)
-                    img.save(storage.path(filename), quality=90)
-                except:
-                    pass
-        empty_list = []
-        good_list = []
-        bad_list = []
-        animal_id = createRemoteFolder(service, "животные", folder_id)
-        broken_id = createRemoteFolder(service, "битые", folder_id)
-        empty_id = createRemoteFolder(service, "пустые", folder_id)
+        # конвертить avi в mp4
+        for video in os.listdir(directory):
+            video_name = video.decode('utf-8')
+            if video_name.lower().endswith(".avi"):
+                convert_avi_to_mp4(settings.MEDIA_ROOT / video_name,
+                                   settings.MEDIA_ROOT / video_name.replace(
+                                       '.avi', '.mp4'))
 
-        paths = ["a/", "b/", "e/", "ab/", "ae/", "be/", "abe/"]
 
-        for path in paths:
-            (settings.MEDIA_ROOT / path).mkdir(parents=True, exist_ok=True)
+        for video in os.listdir(directory):
+            video_name = video.decode('utf-8')
+            if video_name.lower().endswith(".mp4"):
+                extract_first_frame(settings.MEDIA_ROOT / video_name,
+                                    settings.MEDIA_ROOT / video_name.replace(
+                                        '.mp4', '.jpg'))
+
+        get_predicts(os.listdir(directory), True)  ##  СПИСОК
+        d = defaultdict(list)
         with open(storage.path('submission.csv'), 'r') as f:
             reader = csv.reader(f, delimiter=",")
+            next(reader)  # пропускаем хедер
             for row in reader:
-                if not row or len(row) != 4:
-                    continue
-                if row[1] == "1":
-                    bad_list.append(f"/media/{row[0]}")
-                    moveFile(service, d[row[0]], broken_id)
-                    for path in paths:
-                        if 'b' in path:
-                            shutil.copy(storage.path(row[0]), storage.path(path + row[0]))
-                elif row[2] == "1":
-                    empty_list.append(f"/media/{row[0]}")
-                    moveFile(service, d[row[0]], empty_id)
-                    for path in paths:
-                        if 'e' in path:
-                            shutil.copy(storage.path(row[0]), storage.path(path + row[0]))
-                elif row[3] == "1":
-                    good_list.append(f"/media/{row[0]}")
-                    moveFile(service, d[row[0]], animal_id)
-                    for path in paths:
-                        if 'a' in path:
-                            shutil.copy(storage.path(row[0]), storage.path(path + row[0]))
+                at_id = row[0]
+                class_ind = row[1]
+                moveFile(service, down[at_id], folders[class_ind])
+                d[class_ind].append(at_id)
+        d = dict(d)
+        d.update({'success': 200})
+        return JsonResponse(d)
 
-        for path in paths:
-            shutil.make_archive(storage.path(path), "zip", storage.path(path))
-
-        return JsonResponse(
-            {"empty": empty_list, "animal": good_list,
-             "broken": bad_list})
 
     def head(self, request, *args, **kwargs):
         return JsonResponse(
