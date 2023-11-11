@@ -42,7 +42,7 @@ class SquarePadding(BaseTransform):
 def get_predicts(videos: list, word_label: bool = False):
     CONFIG = "mVitConfig.py"
     CHECKPOINT = "checkpoint.pth"
-    DEVICE = "cuda:0"
+    DEVICE = "cpu" # cuda:0
     CLASSES = "classes.csv"
     st = MyStorage()
     test_pipeline = Compose([
