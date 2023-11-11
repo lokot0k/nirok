@@ -12,6 +12,7 @@ RUN mim install mmpose
 RUN pip -q install mmcv==2.0.0 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.0/index.html
 RUN pip -q install mmaction2==1.0.0
 RUN pip install yapf==0.40.1
+RUN pip install django-cors-headers
 RUN cd src
 ENV PORT=8000
 EXPOSE 8000

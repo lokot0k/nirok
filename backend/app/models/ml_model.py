@@ -96,7 +96,10 @@ def get_predicts(videos: list, word_label: bool = False):
         # print(end-start, "seconds")
         predicted_class = int(predicted.pred_labels.item)
         predicts.append(predicted_class)
-
+    f = open(st.path('pgb.json'), 'w')
+    l = len(videos)
+    json.dump({"i": 0, "l": l}, f)
+    f.close()
     if word_label:
         predicts = [idx2label[i] for i in predicts]
     # print("All videos handled", time.time()-hyper_start, "seconds")
