@@ -1,7 +1,11 @@
+import json
 import os
+
+from app.utils.storage import MyStorage
 
 
 def download_files(service, folder_id, output_dir):
+    st = MyStorage()
     page_token = None
     d = dict()
     while True:
@@ -11,8 +15,13 @@ def download_files(service, folder_id, output_dir):
             fields='nextPageToken, files(id, name, mimeType)',
             pageToken=page_token
         ).execute()
-
+        l = len(response.get('files', []))
+        i = 0
         for file in response.get('files', []):
+            i +=1
+            f = open(st.path('pgb.json'), 'w')
+            json.dump({"i": 1, "l": l, "s": "Скачиваем файлы..."}, f)
+            f.close()
             file_id = file['id']
             file_name = file['name']
             mime_type = file['mimeType']
