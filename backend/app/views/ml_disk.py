@@ -105,7 +105,7 @@ class MlDiskView(View):
             for row in reader:
                 i += 1
                 f = open(st.path('pgb.json'), 'w')
-                json.dump({"i": 1, "l": l, "s": "Расфасовываем файлы..."}, f)
+                json.dump({"i": i, "l": l, "s": "Расфасовываем файлы..."}, f)
                 f.close()
                 at_id = row[0]
                 class_ind = row[1]
