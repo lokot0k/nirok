@@ -20,7 +20,7 @@ def download_files(service, folder_id, output_dir):
         for file in response.get('files', []):
             i +=1
             f = open(st.path('pgb.json'), 'w')
-            json.dump({"i": 1, "l": l, "s": "Скачиваем файлы..."}, f)
+            json.dump({"i": i, "l": l, "s": "Скачиваем файлы..."}, f)
             f.close()
             file_id = file['id']
             file_name = file['name']
