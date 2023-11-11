@@ -62,9 +62,9 @@ class MlDiskView(View):
         d = download_files(service, folder_id, st.path(""))
         directory = os.fsencode(settings.MEDIA_ROOT)
         storage = MyStorage()
-        get_predicts([i for i in os.listdir(directory) if
-                      i.endswith('.avi') or i.endswith('.mp4')],
-                     True)
+        get_predicts([str(i) for i in os.listdir(directory) if
+                      str(i).endswith('.avi') or str(i).endswith('.mp4')],
+                     True)  ##  СПИСОК
 
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
