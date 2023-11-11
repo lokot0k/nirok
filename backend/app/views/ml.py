@@ -19,7 +19,7 @@ from app.utils.storage import MyStorage
 
 
 def convert_avi_to_mp4(avi_file_path, output_path):
-    os.popen(
+    os.system(
         "ffmpeg -i '{input}' -ac 2 -b:v 2000k -c:a aac -c:v libx264 -b:a 160k -vprofile high -bf 0 -strict experimental -f mp4 '{output}'".format(
             input=avi_file_path, output=output_path))
     return True
@@ -80,7 +80,6 @@ class MlView(View):
                     convert_avi_to_mp4(settings.MEDIA_ROOT / video_name,
                                        settings.MEDIA_ROOT / video_name.replace('.avi', '.mp4'))
                     # os.remove(settings.MEDIA_ROOT / video_name)
-            time.sleep(3)
 
             for video in os.listdir(directory):
                 video_name = video.decode('utf-8')

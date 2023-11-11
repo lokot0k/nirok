@@ -17,7 +17,7 @@ from mmaction.datasets.transforms.loading import DecordInit, SampleFrames, \
     DecordDecode
 
 from app.utils.storage import MyStorage
-
+import json
 
 class SquarePadding(BaseTransform):
 
@@ -78,18 +78,19 @@ def get_predicts(videos: list, word_label: bool = False):
 
     names = []
     predicts = []
-    hyper_start = time.time()
+    f = open(st.path('pgb.json'))
+    l = len(videos)
+    i = 0
     for video in tqdm(videos):
-        print(video)
         name = os.path.basename(video)
         names.append(name)
-        start = time.time()
         predicted = inference_recognizer(model, video, test_pipeline)
-        end = time.time()
+        i+=1
+        json.dump({"zxc":i / l*100}, f)
         # print(end-start, "seconds")
         predicted_class = int(predicted.pred_labels.item)
         predicts.append(predicted_class)
-
+    f.close()
     if word_label:
         predicts = [idx2label[i] for i in predicts]
     # print("All videos handled", time.time()-hyper_start, "seconds")
