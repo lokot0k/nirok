@@ -61,7 +61,8 @@ function Welcome() {
             });
             if (response.ok) {
                 const body = await response.json() as Response
-                nav("/result");
+                console.log(body)
+                // nav("/result");
             } else {
                 alert("Произошла ошибка")
                 setLoading(false)

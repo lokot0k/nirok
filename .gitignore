@@ -2,5 +2,5 @@
 /backend/media/
 /backend/static/token.json
 __pycache__
-/backend/app/models/checkpoint.pth
+/backend/static/checkpoint.pth
 .idea

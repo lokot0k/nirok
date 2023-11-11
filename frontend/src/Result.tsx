@@ -131,7 +131,7 @@ export function Result() {
     const allCbRef = useRef<HTMLInputElement>(null)
 
     const setFilter = (upd: (prevState: { [p: string]: boolean }) => { [p: string]: boolean }) => {
-        setFilter(prevState => {
+        _setFilter(prevState => {
             const newFilter = upd(prevState);
             if (!allCbRef.current) return newFilter
             const x = Object.values(newFilter);
@@ -210,7 +210,9 @@ export function Result() {
                     <div className="col-span-1 bg-white rounded m-4 my-shadow p-4">
                         <h1 className="text-xl font-bold">Действия</h1>
                         <div className="inline-block relative">
-                            <input type="checkbox" id={`cb-all`} ref={allCbRef}/>
+                            <input type="checkbox" id={`cb-all`} ref={allCbRef} onChange={event => {
+                                _setFilter(Object.fromEntries(xuy.map(value => [value, event.target.checked])))
+                            }}/>
                             <label htmlFor={`cb-all`}> Все</label>
                         </div>
 
