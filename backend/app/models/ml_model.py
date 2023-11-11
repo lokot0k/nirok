@@ -81,21 +81,22 @@ def get_predicts(videos: list, word_label: bool = False):
     names = []
     predicts = []
     f = open(st.path('pgb.json'), 'w')
-    f.close()
-    f = open(st.path('pgb.json'), 'w')
     l = len(videos)
     json.dump({"i": 0, "l": l}, f)
+    f.close()
     i = 0
     for video in tqdm(videos):
         name = os.path.basename(video)
         names.append(name)
         predicted = inference_recognizer(model, video, test_pipeline)
         i += 1
+        f = open(st.path('pgb.json'), 'w')
         json.dump({"i": i, "l": l}, f)
+        f.close()
         # print(end-start, "seconds")
         predicted_class = int(predicted.pred_labels.item)
         predicts.append(predicted_class)
-    f.close()
+
     if word_label:
         predicts = [idx2label[i] for i in predicts]
     # print("All videos handled", time.time()-hyper_start, "seconds")
