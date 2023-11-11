@@ -3,7 +3,7 @@ FROM python:3.10
 WORKDIR /app
 COPY requirements.txt ./
 COPY start.sh ./
-COPY .. ./src
+COPY . ./src
 RUN pip install -r requirements.txt
 RUN pip install -U openmim
 RUN mim install mmengine

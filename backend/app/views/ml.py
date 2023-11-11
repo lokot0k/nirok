@@ -28,24 +28,16 @@ class MlView(View):
     def get(self, request: HttpRequest, *args,
             **kwargs) -> JsonResponse | HttpResponse:
         storage = MyStorage()
-        empty_list = []
-        good_list = []
-        bad_list = []
+        d = defaultdict(list)
         with open(storage.path('submission.csv'), 'r') as f:
             reader = csv.reader(f, delimiter=",")
+            next(reader)  # пропускаем хедер
             for row in reader:
-                if row[1] == "1":
-                    bad_list.append(f"/media/{row[0]}")
-                elif row[2] == "1":
-                    empty_list.append(f"/media/{row[0]}")
-                elif row[3] == "1":
-                    good_list.append(f"/media/{row[0]}")
-
-        # return JsonResponse(
-        #     {"success": True, "empty": empty_list, "animal": good_list,
-        #      "broken": bad_list, "csv": f"/media/submission.csv"})
-        return JsonResponse({"empty": empty_list, "animal": good_list,
-                             "broken": bad_list})
+                at_id = row[0]
+                class_ind = row[1]
+                d[class_ind].append(at_id)
+        d = dict(d)
+        return JsonResponse(d)
 
     def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
         form = DocumentForm(request.POST, request.FILES)
