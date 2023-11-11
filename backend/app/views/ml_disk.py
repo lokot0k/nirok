@@ -20,7 +20,7 @@ from pydrive.drive import GoogleDrive
 
 from oauth2client.client import GoogleCredentials
 
-from app.models.ml_model import generate_submission_folder, model
+from app.models.ml_model import get_predicts
 from app.utils.drive_downloader import download_files, createRemoteFolder, \
     moveFile
 from app.utils.storage import MyStorage
@@ -62,8 +62,7 @@ class MlDiskView(View):
         d = download_files(service, folder_id, st.path(""))
         directory = os.fsencode(settings.MEDIA_ROOT)
         storage = MyStorage()
-        generate_submission_folder([model],
-                                   settings.MEDIA_ROOT)
+        get_predicts(os.listdir(directory), True)
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
             if filename.lower().endswith(".png") or filename.lower().endswith(

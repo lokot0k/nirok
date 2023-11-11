@@ -15,6 +15,8 @@ from mmcv.transforms import BaseTransform
 from mmaction.datasets.transforms.loading import DecordInit, SampleFrames, \
     DecordDecode
 
+from app.utils.storage import MyStorage
+
 
 class SquarePadding(BaseTransform):
 
@@ -42,8 +44,7 @@ def get_predicts(videos: list, word_label: bool = False):
     CHECKPOINT = "checkpoint.pth"
     DEVICE = "cuda:0"
     CLASSES = "classes.csv"
-    OUTPUT_FILE = "result.csv"
-
+    st = MyStorage()
     test_pipeline = Compose([
         DecordInit(io_backend='disk'),
         SampleFrames(
@@ -90,6 +91,6 @@ def get_predicts(videos: list, word_label: bool = False):
     result_df = pd.DataFrame.from_dict(
         {"attachment_id": names, "class_indx": predicts})
 
-    result_df.to_csv(OUTPUT_FILE, sep=",", index=False)
+    result_df.to_csv(st.path('submission.csv'), sep=",", index=False)
 
     return predicts

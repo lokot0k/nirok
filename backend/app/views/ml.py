@@ -1,5 +1,6 @@
 import os
 import shutil
+from collections import defaultdict
 
 from django.core.files.base import ContentFile
 from django.db import models
@@ -56,47 +57,27 @@ class MlView(View):
             path = storage.save('abc.zip',
                                 ContentFile(requ.read()))
 
-
             # разархивировать по path, грузануть в медиа. Собрать .csv в едины жсон респонс.
             with zipfile.ZipFile(path,  # выгрузка
                                  "r") as zip:
                 zip.extractall(settings.MEDIA_ROOT)
 
-            directory = os.fsencode(settings.MEDIA_ROOT) # возможно пригодиться в будущем
+            directory = os.fsencode(
+                settings.MEDIA_ROOT)  # возможно пригодиться в будущем
 
-            get_predicts(os.listdir(directory), True) ##  СПИСОК
-            empty_list = []
-            good_list = []
-            bad_list = [] ### вместо списков ебануть словарь куда добавлять пути
-
+            get_predicts(os.listdir(directory), True)  ##  СПИСОК
+            d = defaultdict(list)
             with open(storage.path('submission.csv'), 'r') as f:
                 reader = csv.reader(f, delimiter=",")
+                next(reader)  # пропускаем хедер
                 for row in reader:
-                    print(row)
-                    if not row or len(row) != 4:
-                        continue
-                    if row[1] == "1":
-                        bad_list.append(f"/media/{row[0]}")
-                        for path in paths:
-                            if 'b' in path:
-                                shutil.copy(storage.path(row[0]), storage.path(path + row[0]))
-                    elif row[2] == "1":
-                        empty_list.append(f"/media/{row[0]}")
-                        for path in paths:
-                            if 'e' in path:
-                                shutil.copy(storage.path(row[0]), storage.path(path + row[0]))
-                    elif row[3] == "1":
-                        good_list.append(f"/media/{row[0]}")
-                        for path in paths:
-                            if 'a' in path:
-                                shutil.copy(storage.path(row[0]), storage.path(path + row[0]))
-
-            for path in paths:
-                shutil.make_archive(storage.path(path), "zip", storage.path(path))
-
-            return JsonResponse(
-                {"success": "true", "empty": empty_list, "animal": good_list,
-                 "broken": bad_list, "csv": f"/media/submission.csv"})
+                    at_id = row[0]
+                    class_ind = row[1]
+                    d[class_ind].append(at_id)
+            d = dict(d)
+            d.update({"success": "true"})
+            d.update({"csv": "/media/submission.csv"})
+            return JsonResponse(d)
         else:
             return JsonResponse({"success": "false", "message": "плохо"},
                                 status=403)
