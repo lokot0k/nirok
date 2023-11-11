@@ -314,6 +314,15 @@ html {
     }
 }
 
+.col-span-13 {
+    grid-column: span 13 / span 13;
+}
+
+.grid-cols-20 {
+    grid-template-columns: repeat(20, minmax(0, 1fr));
+}
+
+
 
 .image-grid-item {
     padding: 15px;

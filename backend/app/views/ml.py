@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 from collections import defaultdict
 
 from django.core.files.base import ContentFile
@@ -11,9 +12,24 @@ from django.conf import settings
 import zipfile
 import csv
 from PIL import Image
+import cv2
 
 from app.models.ml_model import get_predicts
 from app.utils.storage import MyStorage
+
+
+def convert_avi_to_mp4(avi_file_path, output_path):
+    os.popen(
+        "ffmpeg -i '{input}' -ac 2 -b:v 2000k -c:a aac -c:v libx264 -b:a 160k -vprofile high -bf 0 -strict experimental -f mp4 '{output}'".format(
+            input=avi_file_path, output=output_path))
+    return True
+
+
+def extract_first_frame(mp4_file_path, output_path):
+    vidcap = cv2.VideoCapture(str(mp4_file_path))
+    success, image = vidcap.read()
+    if success:
+        cv2.imwrite(str(output_path), image)
 
 
 class DocumentForm(forms.Form):
@@ -56,6 +72,21 @@ class MlView(View):
 
             directory = os.fsencode(
                 settings.MEDIA_ROOT)  # возможно пригодиться в будущем
+
+            # конвертить avi в mp4
+            for video in os.listdir(directory):
+                video_name = video.decode('utf-8')
+                if video_name.endswith("avi"):
+                    convert_avi_to_mp4(settings.MEDIA_ROOT / video_name,
+                                       settings.MEDIA_ROOT / video_name.replace('.avi', '.mp4'))
+                    # os.remove(settings.MEDIA_ROOT / video_name)
+            time.sleep(3)
+
+            for video in os.listdir(directory):
+                video_name = video.decode('utf-8')
+                if video_name.endswith("mp4"):
+                    extract_first_frame(settings.MEDIA_ROOT / video_name,
+                                        settings.MEDIA_ROOT / video_name.replace('.mp4', '.jpg'))
 
             get_predicts(os.listdir(directory), True)  ##  СПИСОК
             d = defaultdict(list)

@@ -1,5 +1,4 @@
 import {LoaderFunctionArgs, Navigate, useLoaderData, useNavigate} from "react-router-dom";
-import ImageGallery, {ReactImageGalleryItem} from "react-image-gallery";
 import {ChangeEventHandler, useEffect, useRef, useState} from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {solid} from "@fortawesome/fontawesome-svg-core/import.macro";
@@ -7,81 +6,36 @@ import {ChupChupChup} from "./assets/ChupChupChup";
 import {BurgZurgGurg} from "./assets/BurgZurgGurg";
 import clsx from "clsx";
 
-const xuy = ["cartwheel", "catch", "clap", "climb", "dive", "draw_sword", "dribble", "fencing", "flic_flac", "golf", "handstand", "hit", "jump", "pick", "pour", "pullup", "push", "pushup", "shoot_ball", "sit", "situp", "swing_baseball", "sword_exercise", "throw"]
+const xuy = ["cartwheel", "catch", "clap", "climb", "dive", "draw_sword", "dribble", "fencing", "flic_flac", "golf",
+    "handstand", "hit", "jump", "pick", "pour", "pullup", "push", "pushup", "shoot_ball", "sit", "situp", "swing_baseball", "sword_exercise", "throw"]
+const pizda = ["Колесо", "Поимка", "Хлопок", "Вскарабкивание", "Нырок", "Обнаживание меча", "Дриблинг", "Фехтование", "Рандат", "Гольф",
+    "Стояние на руках", "Удар", "Прыжок", "Подбирание", "Наливание", "Подтягивание", "Толкание", "Отжимание", "Бросок мяча", "Присаживание", "Качание пресса", "Взмах битой", "Упражнение с мечом", "Бросание"]
 
+const l10n = Object.fromEntries(xuy.map((v, i) => [v, pizda[i]]))
 
-enum QualityTag {
-    ANIMAL = "animal",
-    BROKEN = "broken",
-    EMPTY = "empty"
+type Item = {
+    videoSrc: string;
+    thumbnailSrc: string;
+    name: string;
+    description: string;
+    originalTag: string;
 }
 
-type ExtendedReactImageGalleryItem = ReactImageGalleryItem & { originalTag: QualityTag }
-
 type Data = {
-    [key in QualityTag]: string[]
+    [p: string]: string[]
 }
 
 
 export const loader = async (): Promise<Data | null> => {
     // ====== api request ========
 
-    return {
-        [QualityTag.ANIMAL]: [],
-        [QualityTag.BROKEN]: [],
-        [QualityTag.EMPTY]: [],
-    };
-
     const response = await fetch("/api/do_good/", {
         method: "GET",
     })
     let x = await response.json();
-    console.log(x)
     return response.ok ? x as Data : null;
-
-
 }
 
-
-const tagToDescription = {
-    [QualityTag.ANIMAL]: "Животное",
-    [QualityTag.EMPTY]: "Пусто",
-    [QualityTag.BROKEN]: "С дефектом",
-}
-
-const filterToZipUrl: { [key: number]: string } = {
-    0: "", // all false
-    1: "/media/a.zip", // animal
-    2: "/media/e.zip", // empty
-    3: "/media/ae.zip", // animal empty
-    4: "/media/b.zip", // broken
-    5: "/media/ab.zip", // animal broken
-    6: "/media/be.zip", // empty broken
-    7: "/media/abe.zip", // all true
-}
-
-const getUrl = (filter: { [key in QualityTag]: boolean }) => {
-    let result = 0;
-    for (const key in filter) {
-        if (filter[key as QualityTag]) {
-            result += 1 << (key === QualityTag.ANIMAL ? 0 : key === QualityTag.EMPTY ? 1 : 2)
-        }
-    }
-    return filterToZipUrl[result]
-}
-
-
-function MyInput({filter, filterState, onChangeFunc}: {
-    filter: QualityTag,
-    filterState: { [key in QualityTag]: boolean },
-    onChangeFunc: ChangeEventHandler<HTMLInputElement>
-}) {
-    return <>
-        <input type="checkbox" id={`cb-${filter}`} checked={filterState[filter]}
-               onChange={onChangeFunc}/>
-        <label htmlFor={`cb-${filter}`}>{tagToDescription[filter]}</label>
-    </>;
-}
 
 function downloadFile(url: string, filename: string) {
     const link = document.createElement('a');
@@ -94,93 +48,135 @@ function downloadFile(url: string, filename: string) {
 
 type ViewMode = "ChupChupChup" | "BurgZurgGurg"
 
-type GalleryProps = {
+type PlayerProps = {
     close: () => void;
-    data: ExtendedReactImageGalleryItem[];
+    next: () => void;
+    prev: () => void;
+    data: Item[];
     chosenImage: number;
 }
 
-const Gallery = ({close, data, chosenImage}: GalleryProps) =>
-    <div className="image-gallery-container">
-        <button className="close-btn" onClick={close}><FontAwesomeIcon
-            icon={solid("close")}/></button>
-        <ImageGallery items={data} lazyLoad thumbnailPosition="left"
-                      startIndex={chosenImage}/>
-    </div>;
+const Player = ({close, data, chosenImage, prev, next}: PlayerProps) => {
+    chosenImage = (chosenImage + data.length) % data.length
 
-type ImageGridProps = {
-    images: ExtendedReactImageGalleryItem[]
+    return <div className="relative p-4 flex justify-center items-center">
+        <button className="absolute top-4 right-4 z-4 text-4xl text-main" onClick={close}><FontAwesomeIcon
+            icon={solid("close")}/></button>
+        <span className="mr-4 cursor-pointer text-4xl text-main" onClick={prev}>
+            <FontAwesomeIcon icon={solid("chevron-left")}/>
+        </span>
+        <div className="aspect-[4/3] w-3/5 bg-black flex items-center">
+            <video src={data[chosenImage].videoSrc} className="w-full" autoPlay loop/>
+        </div>
+
+        <span className="ml-4 cursor-pointer text-4xl text-main" onClick={next}>
+            <FontAwesomeIcon icon={solid("chevron-right")}/>
+        </span>
+    </div>;
+};
+
+type ImagesViewProps = {
+    images: Item[]
     chooseImage: (index: number) => void;
 }
 
-const ImageGrid = ({images, chooseImage}: ImageGridProps) => <div className="image-grid col-span-5">
-    {images.map((item, index) => <div key={index} className="image-grid-item">
-            <img src={item.thumbnail} alt={item.description} className={`thumbnail-${item.originalTag}`}
-                 onClick={event => chooseImage(index)}/>
+const ImageGrid = ({images, chooseImage}: ImagesViewProps) => <div className="grid grid-cols-5 -mt-2">
+    {images.map((item, index) => <div key={index}
+                                      className="relative m-2 cursor-pointer transition-transform hover:scale-105 shadow p-2 rounded"
+                                      onClick={() => chooseImage(index)}>
+            <div className="mt-2 bg-black h-48 w-full flex justify-center items-center">
+                <img src={item.thumbnailSrc} alt={item.name} className="min-h-48 rounded"/>
+            </div>
+            <div className="mt-2 flex justify-center items-center">
+                {item.description}
+            </div>
+            <div
+                className="absolute top-0 left-0 h-full w-full flex justify-center items-center text-white/50  transition-colors hover:text-red-500/75">
+                <div
+                    className={"rounded-full bg-black/75 w-12 aspect-square flex justify-center items-center text-2xl"}>
+                    <FontAwesomeIcon icon={solid("play")}/>
+                </div>
+            </div>
         </div>
     )}
 </div>
 
+const ImageTable = ({images, chooseImage}: ImagesViewProps) => <div className="grid grid-cols-20 gap-x-4 gap-y-2">
+    <div className="col-span-1"></div>
+    <div className="col-span-13 text-3xl font-bold">Видео</div>
+    <div className="col-span-6 text-3xl font-bold">Действие</div>
+    {images.map((value, index) => (
+        <>
+            <div className="col-span-1 flex justify-end items-center text-2xl">{index + 1}</div>
+            <div className="col-span-13 flex items-center">
+                <img src={value.thumbnailSrc} alt={value.name} className="w-56 rounded cursor-pointer"
+                     onClick={() => chooseImage(index)}/>
+                <p className="ml-4 text break-all text-2xl">{value.name}</p>
+            </div>
+            <div className="col-span-6 flex items-center text-2xl">{value.description}</div>
+        </>
+    ))}
+</div>
 
 export function Result() {
     const nav = useNavigate();
-    const [chosenImage, setChosenImage] = useState(null as null | number);
-    const [viewMode, setViewMode] = useState<ViewMode>("ChupChupChup")
-    const [filterFunc, setFilterFunc] = useState(() => (_: ExtendedReactImageGalleryItem) => true)
+    const [chosenImage, setChosenImage] = useState<number | null>(null);
+    const [viewMode, setViewMode] = useState<ViewMode>("BurgZurgGurg")
     const [filter, _setFilter] = useState(Object.fromEntries(xuy.map(value => [value, false])))
     const allCbRef = useRef<HTMLInputElement>(null)
+    const loadedData = useLoaderData() as Data | null
+
+    const [allCbState, setAllCbState] = useState({
+        checked: false,
+        indeterminate: false,
+    })
+
+
+    if (allCbRef.current) {
+        // allCbRef.current.checked = allCbState.checked
+        allCbRef.current.indeterminate = allCbState.indeterminate
+    }
 
     const setFilter = (upd: (prevState: { [p: string]: boolean }) => { [p: string]: boolean }) => {
         _setFilter(prevState => {
             const newFilter = upd(prevState);
             if (!allCbRef.current) return newFilter
-            const x = Object.values(newFilter);
-            console.log(x)
-            if (x.every(v => v)) {
-                allCbRef.current.checked = true
-                allCbRef.current.indeterminate = false
-            } else if (x.every(v => !v)) {
-                allCbRef.current.checked = false
-                allCbRef.current.indeterminate = false
+            const x = Object.entries(newFilter).filter(value => loadedData && value[0] in loadedData);
+            if (x.every(v => v[1])) {
+                setAllCbState({
+                    checked: true,
+                    indeterminate: false
+                })
+            } else if (x.every(v => !v[1])) {
+                setAllCbState({
+                    checked: false,
+                    indeterminate: false
+                })
             } else {
-                allCbRef.current.checked = false
-                allCbRef.current.indeterminate = true
+                setAllCbState({
+                    checked: false,
+                    indeterminate: true
+                })
             }
             return newFilter
         })
     }
 
 
-    const loadedData = useLoaderData() as Data | null
-
     if (!loadedData) return <Navigate to="/" replace/>
 
-    // const changeFilterCheckbox: ChangeEventHandler<HTMLInputElement> = (e) => {
-    //     const value = e.target.id.slice(3) as QualityTag;
-    //     const newFilter = {
-    //         ...filter,
-    //         [value]: e.target.checked,
-    //     };
-    //     setFilterFunc(() => (item: ExtendedReactImageGalleryItem) => {
-    //         return newFilter[item.originalTag as QualityTag]
-    //     })
-    //     setFilter(newFilter)
-    //     setChosenImage(null)
-    // }
-
-    const result = [] as ExtendedReactImageGalleryItem[]
+    const result = [] as Item[]
     for (const key in loadedData) {
-        result.push(...loadedData[key as QualityTag].map(value => ({
-            original: value,
-            thumbnail: value,
-            originalHeight: 750,
-            description: tagToDescription[key as QualityTag],
-            originalTag: key as QualityTag,
-            thumbnailClass: `thumbnail-${key}`,
-            originalClass: `original-${key}`,
-        })))
+        if (!allCbState.indeterminate || filter[key])
+            result.push(...loadedData[key].map(value => ({
+                videoSrc: `http://localhost:8000/media/${value}`,
+                thumbnailSrc: `http://localhost:8000/media/${value.replace(".mp4", ".jpg")}`,
+                name: value.replace(".mp4", ".avi"),
+                description: l10n[key],
+                originalTag: key,
+            })))
     }
-    const images = result.sort((a, b) => a.original.localeCompare(b.original))
+    const images = result.sort((a, b) => a.name.localeCompare(b.name))
 
 
     return <div className="App">
@@ -204,19 +200,21 @@ export function Result() {
                         icon={solid("download")}/>Скачать отчёт</a>
                 </div>
             </div>
-            {chosenImage !== null ? <Gallery chosenImage={chosenImage} close={() => setChosenImage(null)}
-                                             data={result.filter(filterFunc)}/> :
-                <div className="grid grid-rows-6">
+            {chosenImage !== null ? <Player chosenImage={chosenImage} close={() => setChosenImage(null)}
+                                            next={() => setChosenImage(chosenImage + 1)}
+                                            prev={() => setChosenImage(chosenImage - 1)}
+                                            data={result}/> :
+                <div className="grid grid-cols-6">
                     <div className="col-span-1 bg-white rounded m-4 my-shadow p-4">
                         <h1 className="text-xl font-bold">Действия</h1>
                         <div className="inline-block relative">
-                            <input type="checkbox" id={`cb-all`} ref={allCbRef} onChange={event => {
-                                _setFilter(Object.fromEntries(xuy.map(value => [value, event.target.checked])))
+                            <input type="checkbox" id={`cb-all`} ref={allCbRef} checked={allCbState.checked} onChange={event => {
+                                setFilter(() => Object.fromEntries(xuy.map(value => [value, event.target.checked])))
                             }}/>
                             <label htmlFor={`cb-all`}> Все</label>
                         </div>
 
-                        {xuy.map((value, index) => (
+                        {xuy.filter(value => value in loadedData).map((value, index) => (
                             <div className="ml-4" key={value}>
                                 <input type="checkbox" id={`cb-${index}`} checked={filter[value]} onChange={(e) => {
                                     setFilter(prevState => ({
@@ -228,7 +226,13 @@ export function Result() {
                             </div>
                         ))}
                     </div>
-                    <ImageGrid images={images.filter(filterFunc)} chooseImage={setChosenImage}/>
+                    <div className="col-span-5 mt-4">
+                        {
+                            viewMode === "ChupChupChup" ?
+                                <ImageTable images={images} chooseImage={setChosenImage}/> :
+                                <ImageGrid images={images} chooseImage={setChosenImage}/>
+                        }
+                    </div>
                 </div>
             }
         </div>
