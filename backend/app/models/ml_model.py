@@ -80,6 +80,8 @@ def get_predicts(videos: list, word_label: bool = False):
 
     names = []
     predicts = []
+    f = open(st.path('pgb.json'), 'w')
+    f.close()
     f = open(st.path('pgb.json'))
     l = len(videos)
     json.dump({"i": 0, "l": l}, f)
