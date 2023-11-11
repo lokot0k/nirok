@@ -62,10 +62,10 @@ class MlDiskView(View):
         shutil.rmtree(settings.MEDIA_ROOT)
         settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
         names = ["cartwheel", "catch", "clap", "climb", "dive", "draw_sword",
-               "dribble", "fencing", "flic_flac", "golf",
-               "handstand", "hit", "jump", "pick", "pour", "pullup", "push",
-               "pushup", "shoot_ball", "sit", "situp", "swing_baseball",
-               "sword_exercise", "throw"]
+                 "dribble", "fencing", "flic_flac", "golf",
+                 "handstand", "hit", "jump", "pick", "pour", "pullup", "push",
+                 "pushup", "shoot_ball", "sit", "situp", "swing_baseball",
+                 "sword_exercise", "throw"]
         folders = dict()
         for i in names:
             folders.update({i: createRemoteFolder(service, i, folder_id)})
@@ -85,7 +85,6 @@ class MlDiskView(View):
                                    settings.MEDIA_ROOT / video_name.replace(
                                        '.avi', '.mp4'))
 
-
         for video in os.listdir(directory):
             video_name = video.decode('utf-8')
             if video_name.lower().endswith(".mp4"):
@@ -95,24 +94,30 @@ class MlDiskView(View):
 
         get_predicts(os.listdir(directory), True)  ##  СПИСОК
         d = defaultdict(list)
+        l = len(down.values())
+        i = 0
         f = open(st.path('pgb.json'), 'w')
-        json.dump({"i": 0, "l": 10, "s": "Расфасовываем файлы..."}, f)
+        json.dump({"i": 0, "l": l, "s": "Расфасовываем файлы..."}, f)
         f.close()
         with open(storage.path('submission.csv'), 'r') as f:
             reader = csv.reader(f, delimiter=",")
             next(reader)  # пропускаем хедер
             for row in reader:
+                i += 1
+                f = open(st.path('pgb.json'), 'w')
+                json.dump({"i": 1, "l": l, "s": "Расфасовываем файлы..."}, f)
+                f.close()
                 at_id = row[0]
                 class_ind = row[1]
-                moveFile(service, down[at_id.replace('.mp4','.avi')], folders[class_ind])
+                moveFile(service, down[at_id.replace('.mp4', '.avi')],
+                         folders[class_ind])
                 d[class_ind].append(at_id)
         d = dict(d)
         d.update({'success': 200})
         f = open(st.path('pgb.json'), 'w')
-        json.dump({"i": 0, "l": 10, "s": "Скачиваем файлы..."}, f)
+        json.dump({"i": 0, "l": l, "s": "Скачиваем файлы..."}, f)
         f.close()
         return JsonResponse(d)
-
 
     def head(self, request, *args, **kwargs):
         return JsonResponse(
