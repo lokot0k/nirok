@@ -69,6 +69,9 @@ class MlDiskView(View):
         folders = dict()
         for i in names:
             folders.update({i: createRemoteFolder(service, i, folder_id)})
+        f = open(st.path('pgb.json'), 'w')
+        json.dump({"i": 0, "l": 10, "s": "Скачиваем файлы..."}, f)
+        f.close()
         down = download_files(service, folder_id, st.path(""))
         storage = MyStorage()
         directory = os.fsencode(

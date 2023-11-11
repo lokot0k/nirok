@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import time
@@ -56,10 +57,13 @@ class MlView(View):
         return JsonResponse(d)
 
     def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        storage = MyStorage()
+        f = open(storage.path('pgb.json'), 'w')
+        json.dump({"i": 0, "l": 10, "s": "Скачиваем файлы..."}, f)
+        f.close()
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
             requ = request.FILES['docfile']
-            storage = MyStorage()
             shutil.rmtree(settings.MEDIA_ROOT)
             settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
             path = storage.save('abc.zip',
