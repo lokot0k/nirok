@@ -57,7 +57,7 @@ class MlView(View):
             directory = os.fsencode(
                 settings.MEDIA_ROOT)  # возможно пригодиться в будущем
 
-            get_predicts(os.listdir(directory), True)  ##  СПИСОК
+            get_predicts([i for i in os.listdir(directory) if i.endswith('.avi') or i.endswith('.mp4')], True)  ##  СПИСОК
             d = defaultdict(list)
             with open(storage.path('submission.csv'), 'r') as f:
                 reader = csv.reader(f, delimiter=",")

@@ -62,7 +62,10 @@ class MlDiskView(View):
         d = download_files(service, folder_id, st.path(""))
         directory = os.fsencode(settings.MEDIA_ROOT)
         storage = MyStorage()
-        get_predicts(os.listdir(directory), True)
+        get_predicts([i for i in os.listdir(directory) if
+                      i.endswith('.avi') or i.endswith('.mp4')],
+                     True)
+
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
             if filename.lower().endswith(".png") or filename.lower().endswith(
