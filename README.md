@@ -10,7 +10,7 @@
 ### Задача: **Распознавание действий человека по видео**
 
 - Ссылка на [колаб](https://colab.research.google.com/drive/18cRadmDBQ7hgqrRJrgShcYAiM2FIuvFh?usp=sharing) с обучением модели
-- [Веса](https://drive.google.com/file/d/1JxRvHkkFIk8kcFdCUOC-McBdUuNY0bbd/view?usp=sharing) модели
+- [Веса](https://drive.google.com/file/d/1hmdp90QHBubYUtCoT3U1A0xbmMf3x_qb/view?usp=sharing) модели
 - Конфигурационный [файл](model/mVitConfig.py)
 
 Про тестирование и запуск модели [подробнее](model/README.md)
@@ -18,7 +18,7 @@
 
 
 ### Запуск сервиса для демонстрации модели
-Для работы самой модели необходимо будет скачать checkpoint.pth по [ссылке](https://drive.google.com/file/d/1JxRvHkkFIk8kcFdCUOC-McBdUuNY0bbd/view?usp=sharing) и поместить его в папку /backend/static
+Для работы самой модели необходимо будет скачать checkpoint.pth по [ссылке](https://drive.google.com/file/d/1hmdp90QHBubYUtCoT3U1A0xbmMf3x_qb/view?usp=sharing) и поместить его в папку /backend/static
 
 Сам сервис развертывается одной командой в терминале:
 ```
