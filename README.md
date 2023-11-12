@@ -18,7 +18,7 @@
 
 
 ### Запуск сервиса для демонстрации модели
-Для работы самой модели необходимо будет скачать checkpoint.pth по [ссылке](https://drive.google.com/file/d/1X69EA8GR0jGtLghiVThKa3Vp_yQpq4Pa/view?usp=sharing) и поместить его в папку /backend/static
+Для работы самой модели необходимо будет скачать checkpoint.pth по [ссылке](https://drive.google.com/file/d/1JxRvHkkFIk8kcFdCUOC-McBdUuNY0bbd/view?usp=sharing) и поместить его в папку /backend/static
 
 Сам сервис развертывается одной командой в терминале:
 ```
