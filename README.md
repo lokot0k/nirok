@@ -6,16 +6,15 @@
 - [Егор Петерс](https://t.me/egorka_pomedorka) _(DS/AI/ML)_
 
 
-Распишу позже
-```
+
 ### Задача: **Распознавание действий человека по видео**
 
-Ссылка на [колаб]()
+- Ссылка на [колаб](https://colab.research.google.com/drive/18cRadmDBQ7hgqrRJrgShcYAiM2FIuvFh?usp=sharing) с обучением модели
+- [Веса](https://drive.google.com/file/d/1JxRvHkkFIk8kcFdCUOC-McBdUuNY0bbd/view?usp=sharing) модели
+- Конфигурационный [файл](model/mVitConfig.py)
 
-
-Обученные веса моделей скачиваются в colabе
-```
-
+Про тестирование и запуск модели [подробнее](model/README.md)
+Обученные веса моделей также можно посмотреть в колабе
 
 
 ### Запуск сервиса для демонстрации модели
